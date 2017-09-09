@@ -53,3 +53,59 @@ contract ParentToken {
     }
     
     
+
+   ///@notice Transfer tokens to the beneficiary account
+   ///@param  to The beneficiary account
+   ///@param  value The amount of tokens to be transfered  
+       function transfer(address to, uint value) returns (bool success){
+        require(
+            balances[msg.sender] >= value 
+            && value > 0 
+            );
+            balances[msg.sender] = balances[msg.sender].sub(value);    
+            balances[to] = balances[to].add(value);
+            return true;
+    }
+    
+	///@notice Allow another contract to spend some tokens in your behalf
+	///@param  spender The address authorized to spend 
+	///@param  value The amount to be approved 
+    function approve(address spender, uint256 value)
+        returns (bool success) {
+        allowance[msg.sender][spender] = value;
+        return true;
+    }
+
+    ///@notice Approve and then communicate the approved contract in a single tx
+	///@param  spender The address authorized to spend 
+	///@param  value The amount to be approved 
+    function approveAndCall(address spender, uint256 value, bytes extraData)
+        returns (bool success) {    
+        tokenRecipient recSpender = tokenRecipient(spender);
+        if (approve(spender, value)) {
+            recSpender.receiveApproval(msg.sender, value, this, extraData);
+            return true;
+        }
+    }
+
+
+
+   ///@notice Transfer tokens between accounts
+   ///@param  from The benefactor/sender account.
+   ///@param  to The beneficiary account
+   ///@param  value The amount to be transfered  
+    function transferFrom(address from, address to, uint value) returns (bool success){
+        
+        require(
+            allowance[from][msg.sender] >= value
+            &&balances[from] >= value
+            && value > 0
+            );
+            
+            balances[from] = balances[from].sub(value);
+            balances[to] =  balances[to].add(value);
+            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
+            return true;
+        }
+        
+}
